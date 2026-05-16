@@ -28,6 +28,8 @@ const zh: Record<string, string> = {
   'theme.light': '浅色',
   'theme.dark': '深色',
   'lang.switch': 'Switch to English',
+  'pagination.prev': '往后',
+  'pagination.next': '往前',
 }
 
 const en: Record<string, string> = {
@@ -58,6 +60,8 @@ const en: Record<string, string> = {
   'theme.light': 'Light',
   'theme.dark': 'Dark',
   'lang.switch': '切换为中文',
+  'pagination.prev': 'Newer',
+  'pagination.next': 'Older',
 }
 
 const maps: Record<Locale, Record<string, string>> = { zh, en }

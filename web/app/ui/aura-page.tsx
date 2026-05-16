@@ -9,6 +9,8 @@ interface AuraPageProps {
   entries: Entry[]
   sources: Source[]
   total: number
+  page: number
+  limit: number
   activeSource?: string
   theme?: string
   locale?: string
@@ -39,13 +41,13 @@ function groupByDate(entries: Entry[]): { date: string; entries: Entry[] }[] {
 }
 
 export function AuraPage() {
-  return ({ entries, sources, total, activeSource, theme, locale }: AuraPageProps) => {
+  return ({ entries, sources, total, page, limit, activeSource, theme, locale }: AuraPageProps) => {
     const lc = (locale ?? 'zh') as Locale
     return (
     <Layout title={activeSource ? `Aura · ${activeSource}` : `Aura · ${t('nav.timeline', lc)}`} theme={theme} locale={locale}>
       <div mix={css({ maxWidth: '720px', margin: '0 auto', padding: '24px 20px 100px' })}>
         <FilterBar sources={sources} activeSource={activeSource} lc={lc} />
-        <Timeline entries={entries} sources={sources} total={total} activeSource={activeSource} lc={lc} />
+        <Timeline entries={entries} sources={sources} total={total} page={page} limit={limit} activeSource={activeSource} lc={lc} />
       </div>
     </Layout>
     )
@@ -95,7 +97,7 @@ function Tab() {
 // ── Timeline ──
 
 function Timeline() {
-  return ({ entries, sources, total, activeSource, lc }: { entries: Entry[]; sources: Source[]; total: number; activeSource?: string; lc: Locale }) => {
+  return ({ entries, sources, total, page, limit, activeSource, lc }: { entries: Entry[]; sources: Source[]; total: number; page: number; limit: number; activeSource?: string; lc: Locale }) => {
     if (entries.length === 0) {
       return (
         <div mix={css({ textAlign: 'center', padding: '120px 0', color: 'var(--text-muted)' })}>
@@ -120,6 +122,43 @@ function Timeline() {
             <DateGroup date={group.date} entries={group.entries} sources={sources} isFirst={gi === 0} />
           ))}
         </div>
+
+        <Pagination page={page} total={total} limit={limit} activeSource={activeSource} lc={lc} />
+      </div>
+    )
+  }
+}
+
+function Pagination() {
+  return ({ page, total, limit, activeSource, lc }: { page: number; total: number; limit: number; activeSource?: string; lc: Locale }) => {
+    const totalPages = Math.ceil(total / limit)
+    if (totalPages <= 1) return null
+
+    const sourceParam = activeSource ? '&source=' + encodeURIComponent(activeSource) : ''
+    const prevHref = routes.home.href() + '?page=' + (page - 1) + sourceParam
+    const nextHref = routes.home.href() + '?page=' + (page + 1) + sourceParam
+
+    return (
+      <div mix={css({
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px',
+        paddingTop: '28px',
+        fontSize: '13px',
+      })}>
+        {page > 1 ? (
+          <a href={prevHref} mix={css({ textDecoration: 'none', color: 'var(--accent)', padding: '6px 16px', borderRadius: '6px', border: '1px solid var(--accent-border)', transition: 'background 120ms', '&:hover': { background: 'var(--accent-bg)' }, })}>
+            ← {t('pagination.prev', lc)}
+          </a>
+        ) : (
+          <span mix={css({ color: 'var(--text-muted)', padding: '6px 16px', })}>← {t('pagination.prev', lc)}</span>
+        )}
+        <span mix={css({ color: 'var(--text-muted)' })}>{page} / {totalPages}</span>
+        {page < totalPages ? (
+          <a href={nextHref} mix={css({ textDecoration: 'none', color: 'var(--accent)', padding: '6px 16px', borderRadius: '6px', border: '1px solid var(--accent-border)', transition: 'background 120ms', '&:hover': { background: 'var(--accent-bg)' }, })}>
+            {t('pagination.next', lc)} →
+          </a>
+        ) : (
+          <span mix={css({ color: 'var(--text-muted)', padding: '6px 16px', })}>{t('pagination.next', lc)} →</span>
+        )}
       </div>
     )
   }
