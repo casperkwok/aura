@@ -45,9 +45,10 @@ export function Layout() {
                 textDecoration: 'none',
                 color: 'var(--text)',
                 fontWeight: 700,
-                fontSize: '16px',
-                letterSpacing: '0.12em',
+                fontSize: '15px',
+                letterSpacing: '0.15em',
                 fontFamily: 'var(--font-mono)',
+                transition: 'color 120ms',
                 '&:hover': { color: 'var(--accent)' },
               })}
             >
@@ -57,12 +58,13 @@ export function Layout() {
               mix={css({
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: '8px',
               })}
             >
               <NavLink href={routes.home.href()}>{t('nav.timeline', lc)}</NavLink>
               <NavLink href={routes.insights.href()}>{t('nav.insights', lc)}</NavLink>
               <NavLink href={routes.sources.href()}>{t('nav.sources', lc)}</NavLink>
+              <div mix={css({ width: '1px', height: '16px', background: 'var(--border)', margin: '0 4px' })}></div>
               <LangToggle locale={lc} />
               <ThemeToggle theme={theme ?? 'dark'} />
             </div>
@@ -81,9 +83,12 @@ function NavLink() {
       mix={css({
         textDecoration: 'none',
         color: 'var(--text-muted)',
-        fontFamily: 'var(--font-mono)',
         fontSize: '12px',
-        '&:hover': { color: 'var(--accent)' },
+        fontWeight: 500,
+        padding: '4px 8px',
+        borderRadius: '5px',
+        transition: 'color 120ms, background 120ms',
+        '&:hover': { color: 'var(--accent)', background: 'var(--accent-bg)' },
       })}
     >
       {children}
