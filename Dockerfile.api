@@ -12,11 +12,12 @@ FROM alpine:latest
 
 RUN apk add --no-cache ca-certificates tzdata curl
 
-COPY --from=builder /app/aura-server /usr/bin/aura-server
+WORKDIR /app
+COPY --from=builder /app/aura-server .
 
 EXPOSE 8081
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8081/api/entries?limit=1 || exit 1
 
-CMD ["aura-server"]
+CMD ["./aura-server"]
