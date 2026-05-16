@@ -1,0 +1,9 @@
+.env
+data/*.db
+data/*.db-*
+node_modules/
+bun.lock
+dist/
+.react-router/
+.DS_Store
+.claude/
