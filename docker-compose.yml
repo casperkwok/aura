@@ -1,0 +1,45 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: aura-api
+    ports:
+      - "127.0.0.1:8081:8081"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env.production
+    networks:
+      - aura-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/entries?limit=1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  web:
+    build:
+      context: ./web
+      dockerfile: ../Dockerfile.web
+    container_name: aura-web
+    ports:
+      - "127.0.0.1:44100:44100"
+    networks:
+      - aura-net
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:44100/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  aura-net:
+    driver: bridge
