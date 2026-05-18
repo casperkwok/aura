@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -100,10 +101,10 @@ func (s *ScraperService) fetchTheirStack(source model.Source) error {
 		}
 
 		if err := s.db.Create(&entry).Error; err != nil {
-			fmt.Printf("⚠️ [%s] save failed: %v\n", source.Name, err)
+			log.Printf("⚠️ [%s] save failed: %v", source.Name, err)
 		} else {
 			newCount++
-			fmt.Printf("✅ [%s] %s\n", source.Name, titleCn)
+			log.Printf("✅ [%s] %s", source.Name, titleCn)
 		}
 
 		if newCount >= s.maxItems {
@@ -112,7 +113,7 @@ func (s *ScraperService) fetchTheirStack(source model.Source) error {
 	}
 
 	if newCount > 0 {
-		fmt.Printf("📊 [%s] %d new AI jobs (of %d total matches)\n", source.Name, newCount, result.Metadata.TotalResults)
+		log.Printf("📊 [%s] %d new AI jobs (of %d total matches)", source.Name, newCount, result.Metadata.TotalResults)
 	}
 	return nil
 }

@@ -3,6 +3,7 @@ package scraper
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -20,11 +21,13 @@ func (s *ScraperService) FetchAndSave(source model.Source) error {
 	}
 
 	fp := gofeed.NewParser()
+	fp.UserAgent = "Mozilla/5.0 (compatible; Aura/1.0; +https://aura.casperkwok.com)"
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	feed, err := fp.ParseURLWithContext(source.URL, ctx)
 	if err != nil {
+		log.Printf("❌ [%s] 采集失败: %v", source.Name, err)
 		return fmt.Errorf("[%s] 采集失败: %w", source.Name, err)
 	}
 
@@ -72,7 +75,7 @@ func (s *ScraperService) FetchAndSave(source model.Source) error {
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			fmt.Printf("🧠 [%s] 正在分析: %s\n", source.Name, w.title)
+			log.Printf("🧠 [%s] 正在分析: %s", source.Name, w.title)
 			titleCn, summaryCn := s.analyzer.Analyze(w.title, w.desc)
 
 			entry := model.Entry{
@@ -88,9 +91,9 @@ func (s *ScraperService) FetchAndSave(source model.Source) error {
 
 			mu.Lock()
 			if err := s.db.Create(&entry).Error; err != nil {
-				fmt.Printf("⚠️ [%s] 保存失败: %v\n", source.Name, err)
+				log.Printf("⚠️ [%s] 保存失败: %v", source.Name, err)
 			} else {
-				fmt.Printf("✅ [%s] 已同步: %s\n", source.Name, titleCn)
+				log.Printf("✅ [%s] 已同步: %s", source.Name, titleCn)
 			}
 			mu.Unlock()
 		}(items[i])

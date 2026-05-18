@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -24,7 +25,7 @@ func (s *ScraperService) ScrapeAllActive() {
 	var sources []model.Source
 	s.db.Where("is_active = ?", true).Find(&sources)
 
-	fmt.Printf("🚀 开始抓取 %d 个活跃源...\n", len(sources))
+	log.Printf("🚀 开始抓取 %d 个活跃源...", len(sources))
 
 	var wg sync.WaitGroup
 	for _, src := range sources {

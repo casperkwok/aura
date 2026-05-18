@@ -31,16 +31,22 @@ func main() {
 	scraperSvc := scraper.NewService(db, analyzer, cfg.MaxItemsPerSource, cfg.TheirStackAPIKey)
 	insightSvc := insight.NewService(db, insight.NewAIGenerator(cfg.DeepSeekAPIKey, cfg.DeepSeekBaseURL, cfg.DeepSeekModel))
 
+	log.Printf("⏰ 抓取计划: %s", cfg.ScrapInterval)
+	log.Printf("⏰ 洞察计划: %s", cfg.InsightInterval)
+
 	c := cron.New()
 	c.AddFunc(cfg.ScrapInterval, func() {
+		log.Printf("⏰ 定时抓取触发")
 		scraperSvc.ScrapeAllActive()
 	})
 	c.AddFunc(cfg.InsightInterval, func() {
+		log.Printf("⏰ 定时洞察生成触发")
 		if err := insightSvc.GenerateCurrentWeek(); err != nil {
 			log.Printf("weekly insight generation failed: %v", err)
 		}
 	})
 	c.Start()
+	log.Println("✅ 定时任务已启动")
 
 	r := api.SetupRouter(db, scraperSvc, insightSvc)
 
