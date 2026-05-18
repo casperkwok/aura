@@ -48,10 +48,15 @@ func main() {
 	c.Start()
 	log.Println("✅ 定时任务已启动")
 
-	// 启动后立刻执行一次抓取，确保部署后立即可见新数据
+	// 启动后立刻执行抓取 + 回填缺失的周洞察
 	go func() {
 		log.Println("🚀 启动后首次抓取...")
 		scraperSvc.ScrapeAllActive()
+
+		log.Println("🔍 检查缺失的周洞察...")
+		if err := insightSvc.GenerateMissingWeeks(); err != nil {
+			log.Printf("回填洞察失败: %v", err)
+		}
 	}()
 
 	r := api.SetupRouter(db, scraperSvc, insightSvc)

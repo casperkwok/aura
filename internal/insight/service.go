@@ -3,6 +3,8 @@ package insight
 import (
 	"context"
 	"fmt"
+	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -21,8 +23,11 @@ func NewService(db *gorm.DB, generator Generator) *InsightService {
 }
 
 func (s *InsightService) GenerateCurrentWeek() error {
-	now := time.Now()
-	weekLabel := formatWeekLabel(now)
+	return s.GenerateWeek(time.Now())
+}
+
+func (s *InsightService) GenerateWeek(t time.Time) error {
+	weekLabel := formatWeekLabel(t)
 
 	var existing model.Insight
 	if err := s.db.Where("week_label = ?", weekLabel).First(&existing).Error; err == nil {
@@ -36,7 +41,7 @@ func (s *InsightService) GenerateCurrentWeek() error {
 		parentInsight = &pi
 	}
 
-	start, end := weekBoundaries(now)
+	start, end := weekBoundaries(t)
 	var entries []model.Entry
 	s.db.Where("published_at BETWEEN ? AND ?", start, end).Order("published_at desc").Find(&entries)
 
@@ -85,7 +90,63 @@ func (s *InsightService) GenerateCurrentWeek() error {
 		s.db.Create(&trend)
 	}
 
-	fmt.Printf("✅ Insight for week %s generated: %d trends\n", weekLabel, len(result.Trends))
+	log.Printf("✅ 洞察已生成: %s (%d 个趋势)", weekLabel, len(result.Trends))
+	return nil
+}
+
+// GenerateMissingWeeks finds all weeks that have entries but no insight, and generates them.
+func (s *InsightService) GenerateMissingWeeks() error {
+	// Collect all entry published dates and compute ISO week labels in Go
+	var entries []model.Entry
+	s.db.Select("published_at").Find(&entries)
+	if len(entries) == 0 {
+		log.Println("📭 没有条目，跳过洞察回填")
+		return nil
+	}
+
+	weekSet := map[string]time.Time{}
+	for _, e := range entries {
+		label := formatWeekLabel(e.PublishedAt)
+		if _, ok := weekSet[label]; !ok {
+			weekSet[label] = e.PublishedAt
+		}
+	}
+
+	// Find which weeks already have insights
+	existing := map[string]bool{}
+	var completed []model.Insight
+	s.db.Where("status = ?", "completed").Find(&completed)
+	for _, ins := range completed {
+		existing[ins.WeekLabel] = true
+	}
+
+	// Build sorted list of missing weeks
+	type weekEntry struct {
+		label string
+		t     time.Time
+	}
+	var missing []weekEntry
+	for label, t := range weekSet {
+		if !existing[label] && label != "" {
+			missing = append(missing, weekEntry{label, t})
+		}
+	}
+	sort.Slice(missing, func(i, j int) bool { return missing[i].label < missing[j].label })
+
+	if len(missing) == 0 {
+		log.Println("✅ 所有周的洞察已是最新")
+		return nil
+	}
+
+	log.Printf("📊 发现 %d 个缺失洞察的周，开始回填...", len(missing))
+	for i, we := range missing {
+		log.Printf("📝 [%d/%d] 生成洞察: %s", i+1, len(missing), we.label)
+		if err := s.GenerateWeek(we.t); err != nil {
+			log.Printf("⚠️ 生成 %s 失败: %v", we.label, err)
+			continue
+		}
+	}
+	log.Println("✅ 洞察回填完成")
 	return nil
 }
 

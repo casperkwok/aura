@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -58,14 +59,22 @@ func (h *handler) deleteInsight(c *gin.Context) {
 
 func (h *handler) triggerInsightGeneration(c *gin.Context) {
 	force := c.Query("force") == "true"
+	backfill := c.Query("backfill") == "true"
 	go func() {
+		if backfill {
+			log.Println("🔧 API 触发洞察回填...")
+			if err := h.insightSvc.GenerateMissingWeeks(); err != nil {
+				log.Printf("洞察回填失败: %v", err)
+			}
+			return
+		}
 		if force {
 			year, week := time.Now().ISOWeek()
 			weekLabel := fmt.Sprintf("%d-W%02d", year, week)
 			h.db.Unscoped().Where("week_label = ?", weekLabel).Select("Trends").Delete(&model.Insight{})
 		}
 		if err := h.insightSvc.GenerateCurrentWeek(); err != nil {
-			fmt.Printf("Insight generation failed: %v\n", err)
+			log.Printf("洞察生成失败: %v", err)
 		}
 	}()
 	c.JSON(http.StatusAccepted, gin.H{"message": "insight generation triggered"})
