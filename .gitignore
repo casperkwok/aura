@@ -7,4 +7,4 @@ bun.lock
 dist/
 .react-router/
 .DS_Store
-.claude/
+.claude/server
