@@ -48,6 +48,12 @@ func main() {
 	c.Start()
 	log.Println("✅ 定时任务已启动")
 
+	// 启动后立刻执行一次抓取，确保部署后立即可见新数据
+	go func() {
+		log.Println("🚀 启动后首次抓取...")
+		scraperSvc.ScrapeAllActive()
+	}()
+
 	r := api.SetupRouter(db, scraperSvc, insightSvc)
 
 	go func() {
