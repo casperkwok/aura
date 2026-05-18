@@ -16,7 +16,9 @@ func SeedSources(db *gorm.DB) {
 		{Name: "VentureBeat AI", URL: "https://venturebeat.com/category/ai/feed/", Dimension: "Product", IsActive: true},
 		{Name: "MarkTechPost", URL: "https://www.marktechpost.com/feed/", Dimension: "Product", IsActive: true},
 		// Capital: 投资事件、融资新闻、市场估值
-		{Name: "CB Insights", URL: "https://www.cbinsights.com/research/feed/", Dimension: "Capital", IsActive: true},
+		{Name: "Crunchbase News", URL: "https://news.crunchbase.com/feed/", Dimension: "Capital", IsActive: true},
+		// CB Insights RSS 被 CloudFront 封锁，暂时禁用
+		{Name: "CB Insights", URL: "https://www.cbinsights.com/research/feed/", Dimension: "Capital", IsActive: false},
 		// Talent: 招聘趋势、人才流动、技能需求
 		{Name: "Pragmatic Engineer", URL: "https://blog.pragmaticengineer.com/feed/", Dimension: "Talent", IsActive: true},
 		// Opinion: 行业评论、专家观点、采访分析
@@ -26,8 +28,18 @@ func SeedSources(db *gorm.DB) {
 	for _, s := range defaults {
 		var existing model.Source
 		if err := db.Where("name = ?", s.Name).First(&existing).Error; err == nil {
+			updates := map[string]interface{}{}
 			if existing.Dimension == "" {
-				db.Model(&existing).Update("dimension", s.Dimension)
+				updates["dimension"] = s.Dimension
+			}
+			if existing.IsActive != s.IsActive {
+				updates["is_active"] = s.IsActive
+			}
+			if existing.URL != s.URL {
+				updates["url"] = s.URL
+			}
+			if len(updates) > 0 {
+				db.Model(&existing).Updates(updates)
 			}
 		} else {
 			db.Create(&s)
