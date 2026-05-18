@@ -16,8 +16,9 @@ func SeedSources(db *gorm.DB) {
 		{Name: "VentureBeat AI", URL: "https://venturebeat.com/category/ai/feed/", Dimension: "Product", IsActive: true},
 		{Name: "MarkTechPost", URL: "https://www.marktechpost.com/feed/", Dimension: "Product", IsActive: true},
 		// Capital: 投资事件、融资新闻、市场估值
-		{Name: "Crunchbase News", URL: "https://news.crunchbase.com/feed/", Dimension: "Capital", IsActive: true},
-		// CB Insights RSS 被 CloudFront 封锁，暂时禁用
+		{Name: "TechCrunch", URL: "https://techcrunch.com/feed/", Dimension: "Capital", IsActive: true},
+		// 以下被 CloudFront 封锁，暂时禁用
+		{Name: "Crunchbase News", URL: "https://news.crunchbase.com/feed/", Dimension: "Capital", IsActive: false},
 		{Name: "CB Insights", URL: "https://www.cbinsights.com/research/feed/", Dimension: "Capital", IsActive: false},
 		// Talent: 招聘趋势、人才流动、技能需求
 		{Name: "Pragmatic Engineer", URL: "https://blog.pragmaticengineer.com/feed/", Dimension: "Talent", IsActive: true},
