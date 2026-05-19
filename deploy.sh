@@ -38,7 +38,7 @@ log "starting new API on :$TMP_API_PORT..."
 docker compose -f $COMPOSE_FILE run -d --rm \
   -p 127.0.0.1:$TMP_API_PORT:8081 \
   --name aura-api-new \
-  --entrypoint aura-server \
+  --entrypoint /app/aura-server \
   api
 
 if ! health_check $TMP_API_PORT "/api/entries?limit=1" "API"; then
