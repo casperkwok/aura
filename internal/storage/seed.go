@@ -74,30 +74,6 @@ func SeedSources(db *gorm.DB) {
 		{Name: "One Useful Thing", URL: "https://www.oneusefulthing.org/feed", Dimension: "Opinion", IsActive: true},
 
 		// ═══════════════════════════════════════════
-		// 以下源暂无 RSS 或已被封锁，暂时禁用
-		// ═══════════════════════════════════════════
-		{Name: "Anthropic", URL: "https://www.anthropic.com/rss.xml", Dimension: "Product", IsActive: false},
-		{Name: "Mistral", URL: "https://mistral.ai/news/rss", Dimension: "Product", IsActive: false},
-		{Name: "Cohere", URL: "https://cohere.com/blog/rss", Dimension: "Product", IsActive: false},
-		{Name: "Stability AI", URL: "https://stability.ai/blog/rss.xml", Dimension: "Tech", IsActive: false},
-		{Name: "LangChain Blog", URL: "https://blog.langchain.com/rss/", Dimension: "Tech", IsActive: false},
-		{Name: "Weights & Biases", URL: "https://wandb.ai/fully-connected/rss.xml", Dimension: "Tech", IsActive: false},
-		{Name: "Weaviate Blog", URL: "https://weaviate.io/blog/feed.xml", Dimension: "Tech", IsActive: false},
-		{Name: "Arize AI Blog", URL: "https://arize.com/blog/feed/", Dimension: "Tech", IsActive: false},
-		{Name: "Braintrust Blog", URL: "https://www.braintrustdata.com/blog/rss", Dimension: "Tech", IsActive: false},
-		{Name: "Helicone Blog", URL: "https://www.helicone.ai/blog/rss", Dimension: "Tech", IsActive: false},
-		{Name: "Papers With Code", URL: "https://paperswithcode.com/latest.rss", Dimension: "Tech", IsActive: false},
-		{Name: "Philipp Schmid", URL: "https://www.philschmid.de/feed.xml", Dimension: "Tech", IsActive: false},
-		{Name: "Eugene Yan", URL: "https://eugeneyan.com/feed.xml", Dimension: "Opinion", IsActive: false},
-		{Name: "Jason Liu", URL: "https://jxnl.co/feed.xml", Dimension: "Opinion", IsActive: false},
-		{Name: "Paul Graham", URL: "http://www.paulgraham.com/rss.html", Dimension: "Opinion", IsActive: false},
-		{Name: "The Batch", URL: "https://www.deeplearning.ai/the-batch/rss", Dimension: "Opinion", IsActive: false},
-		{Name: "Ben's Bites", URL: "https://bensbites.beehiiv.com/feed", Dimension: "Opinion", IsActive: false},
-		{Name: "First Round Review", URL: "https://review.firstround.com/feed.xml", Dimension: "Capital", IsActive: false},
-		{Name: "NFX Blog", URL: "https://www.nfx.com/feed", Dimension: "Capital", IsActive: false},
-		{Name: "CB Insights", URL: "https://www.cbinsights.com/research/feed/", Dimension: "Capital", IsActive: false},
-
-		// ═══════════════════════════════════════════
 		// Twitter/X: 经 plume 服务抓取（Type=twitter，URL 存 screenName）
 		// ═══════════════════════════════════════════
 		{Name: "X @OpenAI", Type: "twitter", URL: "OpenAI", Dimension: "Product", IsActive: true},
@@ -105,6 +81,16 @@ func SeedSources(db *gorm.DB) {
 		{Name: "X @AnthropicAI", Type: "twitter", URL: "AnthropicAI", Dimension: "Product", IsActive: true},
 		{Name: "X @karpathy", Type: "twitter", URL: "karpathy", Dimension: "Opinion", IsActive: true},
 	}
+	// 已失效的源（404/403/500 或返回 HTML 而非 feed，部分被 CloudFront 封锁），从库中清除
+	obsolete := []string{
+		"Anthropic", "Mistral", "Cohere", "Stability AI", "LangChain Blog",
+		"Weights & Biases", "Weaviate Blog", "Arize AI Blog", "Braintrust Blog",
+		"Helicone Blog", "Papers With Code", "Philipp Schmid", "Eugene Yan",
+		"Jason Liu", "Paul Graham", "The Batch", "Ben's Bites",
+		"First Round Review", "NFX Blog", "CB Insights",
+	}
+	db.Where("name IN ?", obsolete).Delete(&model.Source{})
+
 	for _, s := range defaults {
 		var existing model.Source
 		if err := db.Where("name = ?", s.Name).First(&existing).Error; err == nil {
