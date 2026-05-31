@@ -13,6 +13,7 @@ type Config struct {
 	DeepSeekBaseURL   string
 	DeepSeekModel     string
 	TheirStackAPIKey  string
+	PlumeURL          string
 	DBPath            string
 	MaxItemsPerSource int
 	ScrapInterval     string
@@ -33,6 +34,7 @@ func Load() (*Config, error) {
 		DeepSeekBaseURL:   envOrDefault("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
 		DeepSeekModel:     envOrDefault("DEEPSEEK_MODEL", "deepseek-v4-flash"),
 		TheirStackAPIKey:  os.Getenv("THEIRSTACK_API_KEY"),
+		PlumeURL:          envOrDefault("PLUME_URL", "http://localhost:8090"),
 		DBPath:            envOrDefault("DB_PATH", "data/aura.db"),
 		MaxItemsPerSource: envOrDefaultInt("MAX_ITEMS_PER_SOURCE", 10),
 		ScrapInterval:     envOrDefault("SCRAP_INTERVAL", "0 */2 * * *"),

@@ -1,4 +1,21 @@
 services:
+  plume:
+    build:
+      context: ./plume
+      dockerfile: Dockerfile
+    container_name: aura-plume
+    env_file:
+      - ./plume/.env
+    networks:
+      - aura-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8090/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   api:
     build:
       context: .
@@ -10,8 +27,13 @@ services:
       - ./data:/app/data
     env_file:
       - .env.production
+    environment:
+      - PLUME_URL=http://plume:8090
     networks:
       - aura-net
+    depends_on:
+      plume:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/api/entries?limit=1"]

@@ -20,6 +20,10 @@ func (s *ScraperService) FetchAndSave(source model.Source) error {
 		return s.fetchTheirStack(source)
 	}
 
+	if source.Type == "twitter" {
+		return s.fetchTwitter(source)
+	}
+
 	fp := gofeed.NewParser()
 	fp.UserAgent = "Mozilla/5.0 (compatible; Aura/1.0; +https://aura.casperkwok.com)"
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)

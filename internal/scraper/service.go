@@ -15,10 +15,11 @@ type ScraperService struct {
 	analyzer      Analyzer
 	maxItems      int
 	theirStackKey string
+	plumeURL      string
 }
 
-func NewService(db *gorm.DB, analyzer Analyzer, maxItems int, theirStackKey string) *ScraperService {
-	return &ScraperService{db: db, analyzer: analyzer, maxItems: maxItems, theirStackKey: theirStackKey}
+func NewService(db *gorm.DB, analyzer Analyzer, maxItems int, theirStackKey string, plumeURL string) *ScraperService {
+	return &ScraperService{db: db, analyzer: analyzer, maxItems: maxItems, theirStackKey: theirStackKey, plumeURL: plumeURL}
 }
 
 func (s *ScraperService) ScrapeAllActive() {

@@ -96,6 +96,14 @@ func SeedSources(db *gorm.DB) {
 		{Name: "First Round Review", URL: "https://review.firstround.com/feed.xml", Dimension: "Capital", IsActive: false},
 		{Name: "NFX Blog", URL: "https://www.nfx.com/feed", Dimension: "Capital", IsActive: false},
 		{Name: "CB Insights", URL: "https://www.cbinsights.com/research/feed/", Dimension: "Capital", IsActive: false},
+
+		// ═══════════════════════════════════════════
+		// Twitter/X: 经 plume 服务抓取（Type=twitter，URL 存 screenName）
+		// ═══════════════════════════════════════════
+		{Name: "X @OpenAI", Type: "twitter", URL: "OpenAI", Dimension: "Product", IsActive: true},
+		{Name: "X @claudeai", Type: "twitter", URL: "claudeai", Dimension: "Product", IsActive: true},
+		{Name: "X @AnthropicAI", Type: "twitter", URL: "AnthropicAI", Dimension: "Product", IsActive: true},
+		{Name: "X @karpathy", Type: "twitter", URL: "karpathy", Dimension: "Opinion", IsActive: true},
 	}
 	for _, s := range defaults {
 		var existing model.Source

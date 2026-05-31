@@ -1,0 +1,6 @@
+[
+  { "username": "OpenAI", "note": "OpenAI 官方" },
+  { "username": "claudeai", "note": "Claude 官方" },
+  { "username": "AnthropicAI", "note": "Anthropic 官方" },
+  { "username": "karpathy", "note": "Andrej Karpathy" }
+]

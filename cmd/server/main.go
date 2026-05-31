@@ -28,7 +28,7 @@ func main() {
 	storage.SeedSources(db)
 
 	analyzer := translator.NewAIAnalyzer(cfg.DeepSeekAPIKey, cfg.DeepSeekBaseURL, cfg.DeepSeekModel)
-	scraperSvc := scraper.NewService(db, analyzer, cfg.MaxItemsPerSource, cfg.TheirStackAPIKey)
+	scraperSvc := scraper.NewService(db, analyzer, cfg.MaxItemsPerSource, cfg.TheirStackAPIKey, cfg.PlumeURL)
 	insightSvc := insight.NewService(db, insight.NewAIGenerator(cfg.DeepSeekAPIKey, cfg.DeepSeekBaseURL, cfg.DeepSeekModel))
 
 	log.Printf("⏰ 抓取计划: %s", cfg.ScrapInterval)
