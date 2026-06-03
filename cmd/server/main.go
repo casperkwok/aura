@@ -37,6 +37,9 @@ func main() {
 	c := cron.New()
 	c.AddFunc(cfg.ScrapInterval, func() {
 		log.Printf("⏰ 定时抓取触发")
+		if err := scraperSvc.SyncTwitterSources(); err != nil {
+			log.Printf("X 源同步失败: %v", err)
+		}
 		scraperSvc.ScrapeAllActive()
 	})
 	c.AddFunc(cfg.InsightInterval, func() {
@@ -50,6 +53,11 @@ func main() {
 
 	// 启动后立刻执行抓取 + 回填缺失的周洞察
 	go func() {
+		log.Println("🔄 从 plume 同步 X 追踪账号...")
+		if err := scraperSvc.SyncTwitterSources(); err != nil {
+			log.Printf("X 源同步失败: %v", err)
+		}
+
 		log.Println("🚀 启动后首次抓取...")
 		scraperSvc.ScrapeAllActive()
 

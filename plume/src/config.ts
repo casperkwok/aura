@@ -18,6 +18,8 @@ export const DEFAULT_LIMIT = Number(process.env.PLUME_DEFAULT_LIMIT ?? 40);
 export interface TrackedAccount {
   username: string;
   note?: string;
+  /** aura 的维度归类：Tech/Product/Capital/Talent/Opinion，缺省时由 aura 兜底为 Opinion。 */
+  dimension?: string;
 }
 
 /** 读取被追踪账号列表。 */

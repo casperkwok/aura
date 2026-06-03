@@ -112,6 +112,83 @@ func (s *ScraperService) fetchTwitter(source model.Source) error {
 	return nil
 }
 
+// plume /accounts 返回的被追踪账号
+type plumeAccount struct {
+	Username  string `json:"username"`
+	Note      string `json:"note"`
+	Dimension string `json:"dimension"`
+}
+
+// SyncTwitterSources 从 plume 的 /accounts 拉取被追踪账号列表，
+// 把每个账号 upsert 成一条 Type=twitter 的 Source，使得追踪列表只需在 plume 维护一处。
+func (s *ScraperService) SyncTwitterSources() error {
+	if s.plumeURL == "" {
+		return fmt.Errorf("PLUME_URL 未配置，跳过 X 源同步")
+	}
+
+	endpoint := strings.TrimRight(s.plumeURL, "/") + "/accounts"
+	client := http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Get(endpoint)
+	if err != nil {
+		return fmt.Errorf("plume /accounts 请求失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("读取 /accounts 响应失败: %w", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("plume /accounts 返回 %d: %s", resp.StatusCode, string(body[:min(len(body), 200)]))
+	}
+
+	var accounts []plumeAccount
+	if err := json.Unmarshal(body, &accounts); err != nil {
+		return fmt.Errorf("解析 /accounts 失败: %w", err)
+	}
+
+	synced := 0
+	for _, acc := range accounts {
+		if acc.Username == "" {
+			continue
+		}
+		dimension := acc.Dimension
+		if dimension == "" {
+			dimension = "Opinion"
+		}
+		name := "X @" + acc.Username
+
+		var existing model.Source
+		if err := s.db.Where("name = ?", name).First(&existing).Error; err == nil {
+			updates := map[string]interface{}{}
+			if existing.URL != acc.Username {
+				updates["url"] = acc.Username
+			}
+			if existing.Type != "twitter" {
+				updates["type"] = "twitter"
+			}
+			if existing.Dimension == "" {
+				updates["dimension"] = dimension
+			}
+			if len(updates) > 0 {
+				s.db.Model(&existing).Updates(updates)
+			}
+		} else {
+			s.db.Create(&model.Source{
+				Name:      name,
+				Type:      "twitter",
+				URL:       acc.Username,
+				Dimension: dimension,
+				IsActive:  true,
+			})
+			synced++
+		}
+	}
+
+	log.Printf("🔄 X 源同步完成：plume 追踪 %d 个账号，新增 %d 个", len(accounts), synced)
+	return nil
+}
+
 func firstLine(s string) string {
 	if i := strings.IndexByte(s, '\n'); i >= 0 {
 		return strings.TrimSpace(s[:i])

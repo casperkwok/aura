@@ -73,13 +73,8 @@ func SeedSources(db *gorm.DB) {
 		{Name: "The Gradient", URL: "https://thegradient.pub/rss/", Dimension: "Opinion", IsActive: true},
 		{Name: "One Useful Thing", URL: "https://www.oneusefulthing.org/feed", Dimension: "Opinion", IsActive: true},
 
-		// ═══════════════════════════════════════════
-		// Twitter/X: 经 plume 服务抓取（Type=twitter，URL 存 screenName）
-		// ═══════════════════════════════════════════
-		{Name: "X @OpenAI", Type: "twitter", URL: "OpenAI", Dimension: "Product", IsActive: true},
-		{Name: "X @claudeai", Type: "twitter", URL: "claudeai", Dimension: "Product", IsActive: true},
-		{Name: "X @AnthropicAI", Type: "twitter", URL: "AnthropicAI", Dimension: "Product", IsActive: true},
-		{Name: "X @karpathy", Type: "twitter", URL: "karpathy", Dimension: "Opinion", IsActive: true},
+		// Twitter/X 源不在此处维护，由 ScraperService.SyncTwitterSources()
+		// 从 plume 的 /accounts 自动同步（追踪列表只在 plume/accounts.json 维护一处）。
 	}
 	// 已失效的源（404/403/500 或返回 HTML 而非 feed，部分被 CloudFront 封锁），从库中清除
 	obsolete := []string{
